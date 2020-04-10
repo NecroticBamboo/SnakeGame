@@ -4,9 +4,7 @@ import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.Terminal;
 
-import javax.naming.ldap.Control;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -16,11 +14,11 @@ public class ScoreBoard {
 
     private static Screen screen = null;
 
-    private static List<Score> leaderBoard;
+    private static List<User> leaderBoard;
 
-    public ScoreBoard(List<Score> scoreIn, Screen screenIn) {
+    public ScoreBoard(List<User> userIn, Screen screenIn) {
         screen = screenIn;
-        leaderBoard = scoreIn;
+        leaderBoard = userIn;
     }
 
     public void showScore() {
@@ -57,9 +55,9 @@ public class ScoreBoard {
     }
 
     private static void sortAndShowScoreBoard(Panel contentPanel) {
-        Collections.sort(leaderBoard,(Score a, Score b)->a.getScore()-b.getScore());
-        for (Score score : leaderBoard) {
-            Label question = new Label("User: "+score.getName() + " has the following score: " + score.getScore());
+        Collections.sort(leaderBoard,(User a, User b)->a.getScore()-b.getScore());
+        for (User user : leaderBoard) {
+            Label question = new Label("User: "+ user.getName() + " has the following score: " + user.getScore());
             contentPanel.addComponent(question);
         }
     }

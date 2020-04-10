@@ -14,6 +14,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+//TODO: decrease delay when score increases
+//TODO: replace magic characters
+//TODO: make it colourful
+//TODO: blink on loss
+//TODO: extract board interface. Remove screen from the game
+//TODO: draw updates only
+//TODO: write unit tests
+
 public class SnakeGame {
 
     private final Queue<Coordinates> snakeBody = new LinkedList<>();
@@ -25,40 +33,47 @@ public class SnakeGame {
     private int score = 0;
 
     private static Screen screen;
-    private Terminal terminal;
-    private static List<Score> leaderBoard;
+    private final Terminal terminal;
+    private static List<User> leaderBoard;
+    private static int leaderBoardLength = 0;
 
     private static int moveRow;
     private static int moveCol;
 
-    public SnakeGame(List<Score> leaderBoardIn, Screen screenIn, Terminal terminalIn) {
+    public SnakeGame(List<User> leaderBoardIn, Screen screenIn, Terminal terminalIn) {
         leaderBoard = leaderBoardIn;
         screen = screenIn;
         terminal = terminalIn;
     }
 
     public void play() {
-        fillBoard();
+        final TextGraphics textGraphics;
         try {
-            moveRow = (terminal.getTerminalSize().getColumns() / 10) - 1;
-            moveCol = terminal.getTerminalSize().getColumns() / 4;
+            fillBoard();
+            moveRow = terminal.getTerminalSize().getRows()/3;
+            moveCol = terminal.getTerminalSize().getColumns()/4;
+
+            textGraphics = terminal.newTextGraphics();
 
             screen.setCursorPosition(null);
             screen.clear();
             setStart();
             screen.refresh();
 
-            final TextGraphics textGraphics = terminal.newTextGraphics();
             KeyStroke keyStroke = terminal.readInput();
-            KeyStroke previousKeyStroke;
+            KeyStroke previousKeyStroke=keyStroke;
             do {
-                textGraphics.putString(moveCol, moveRow + 7, keyStroke.toString());
+                if(keyStroke.getKeyType()==KeyType.Escape){
+                    return;
+                }
+
                 switch (keyStroke.getCharacter()) {
                     case 'w':
                         if (!move(0, -1)) {
                             return;
                         } else {
                             printBoard();
+                            textGraphics.putString(0, 0, "Current score: " + score);
                             screen.refresh();
                         }
                         previousKeyStroke = keyStroke;
@@ -68,6 +83,7 @@ public class SnakeGame {
                             return;
                         } else {
                             printBoard();
+                            textGraphics.putString(0, 0, "Current score: " + score);
                             screen.refresh();
                         }
                         previousKeyStroke = keyStroke;
@@ -77,6 +93,7 @@ public class SnakeGame {
                             return;
                         } else {
                             printBoard();
+                            textGraphics.putString(0, 0, "Current score: " + score);
                             screen.refresh();
                         }
                         previousKeyStroke = keyStroke;
@@ -86,16 +103,15 @@ public class SnakeGame {
                             return;
                         } else {
                             printBoard();
+                            textGraphics.putString(0, 0, "Current score: " + score);
                             screen.refresh();
                         }
                         previousKeyStroke = keyStroke;
                         break;
                     default:
-                        previousKeyStroke = null;
-//                            System.out.println("Something is wrong!  SnakeGame");
                         break;
                 }
-                Thread.sleep(1000);
+                Thread.sleep(200);
                 keyStroke = terminal.pollInput();
 
                 if (keyStroke == null) {
@@ -109,8 +125,8 @@ public class SnakeGame {
         }
     }
 
-    private void fillBoard() {
-        board = new char[5][5];
+    private void fillBoard() throws IOException {
+        board = new char[terminal.getTerminalSize().getRows()-1][terminal.getTerminalSize().getColumns()];
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[0].length; j++) {
                 board[i][j] = '*';
@@ -121,7 +137,7 @@ public class SnakeGame {
     private static void printBoard() {
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[0].length; j++) {
-                screen.setCharacter(j + moveCol + 10, i + moveRow, new TextCharacter(board[i][j]));
+                screen.setCharacter(j, i+1, new TextCharacter(board[i][j]));
             }
         }
     }
@@ -144,16 +160,16 @@ public class SnakeGame {
         placePoint(point, '0');
     }
 
-    private void placePoint(Coordinates head, char element) {
-        board[head.getRow()][head.getColumn()] = element;
-    }
-
     private Coordinates selectRandomElementInArray() {
         int totalElement = board.length * board[0].length;
         int indexToSelect = (int) (Math.random() * totalElement);
-        int xIndex = indexToSelect / board.length;
-        int yIndex = indexToSelect % board.length;
-        return new Coordinates(xIndex, yIndex);
+        int row = indexToSelect % board.length;
+        int column = indexToSelect / board[0].length;
+        return new Coordinates(row, column);
+    }
+
+    private void placePoint(Coordinates head, char element) {
+        board[head.getRow()][head.getColumn()] = element;
     }
 
     private void clearBoard() {
@@ -161,7 +177,6 @@ public class SnakeGame {
             Arrays.fill(chars, '*');
         }
     }
-
 
     private boolean move(int columnChange, int rowChange) {
         int newRow = snakeHead.getRow() + rowChange;
@@ -192,8 +207,7 @@ public class SnakeGame {
         final TextGraphics textGraphics;
         try {
             textGraphics = terminal.newTextGraphics();
-            textGraphics.putString(moveCol, board[0].length + moveRow, "You have lost!");
-            textGraphics.putString(moveCol, board[0].length + moveRow + 1, "Your score is " + score);
+            textGraphics.putString(0, 0, "You have lost with the score of: " + score);
             screen.refresh();
 
             Thread.sleep(1500);
@@ -208,57 +222,74 @@ public class SnakeGame {
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
-//        System.out.println("Lost message triggered");
     }
 
     private void addUser() {
         final TextGraphics textGraphics;
         try {
             String name = "";
+
             textGraphics = terminal.newTextGraphics();
 
-            textGraphics.putString(moveCol, board[0].length + moveRow + 2, "Enter your name:");
+            textGraphics.putString(moveCol, moveRow, "Enter your name:");
             screen.refresh();
 
             KeyStroke keyStroke;
+            int limit = 0;
             do {
                 keyStroke = terminal.readInput();
-                if (keyStroke.getKeyType() == KeyType.Enter) {
-                    break;
-                } else {
-                    name = name + keyStroke.getCharacter();
-                }
-            } while (keyStroke.getKeyType() != KeyType.Enter);
+                name = name + keyStroke.getCharacter();
+                limit++;
+            } while (limit < 4);
 
-            System.out.println(name);
-            Score user = new Score(name, score);
-            System.out.println(user.getName()+" "+user.getScore());
-//            leaderBoard.add(user);
-            checkForDupes(user);
+            textGraphics.putString(moveCol, moveRow, "Your name is: " + name.toUpperCase());
+            screen.refresh();
+
+            User user = new User(name.toUpperCase(), score);
+
+            if (leaderBoardLength < 5) {
+                checkForDupes(user);
+            } else replaceUser(user);
+
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static void checkForDupes(Score user) {
-            if(leaderBoard.isEmpty()){
-                leaderBoard.add(user);
-            }
-            else {
-//                leaderBoard.add(user);
-                int min = leaderBoard.get(0).getScore();
-                int position = 0;
+    public static void checkForDupes(User user) {
+        if (leaderBoard.isEmpty()) {
+            leaderBoard.add(user);
+            leaderBoardLength++;
+        } else {
+            checkForSameName(user);
+        }
+    }
 
-                for (int i = 1; i < leaderBoard.size(); i++) {
-                    if (leaderBoard.get(i).getScore() < min) {
-                        min = leaderBoard.get(i).getScore();
-                        position = i;
-                    }
-                    if (min < user.getScore()) {
-                        leaderBoard.add(position, user);
-                    }
-                }
+    private static void checkForSameName(User user) {
+        for (User value : leaderBoard) {
+            if (value.getName().equals(user.getName())) {
+                changeScore(value, user);
+                return;
             }
+        }
+        leaderBoard.add(user);
+        leaderBoardLength++;
+    }
+
+    private static void changeScore(User oldUser, User newUser) {
+        if (newUser.getScore() > oldUser.getScore()) {
+            oldUser.setScore(newUser.getScore());
+        }
+    }
+
+    private static void replaceUser(User user) {
+        for (int i = 0; i < leaderBoard.size(); i++) {
+            if (leaderBoard.get(i).getScore() < user.getScore()) {
+                leaderBoard.remove(i);
+                leaderBoard.add(i, user);
+                return;
+            }
+        }
     }
 }

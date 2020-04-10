@@ -1,8 +1,6 @@
 package com.NecroticBamboo;
 
 import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
-import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
@@ -10,8 +8,6 @@ import com.googlecode.lanterna.terminal.Terminal;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -21,7 +17,7 @@ import java.util.List;
  */
 public class Main {
 
-    private static List<Score> test=new ArrayList<>();
+    private static List<User> leaderBoard =new ArrayList<>();
 
     private static final DefaultTerminalFactory defaultTerminalFactory = new DefaultTerminalFactory();
 
@@ -42,8 +38,8 @@ public class Main {
             GridLayout gridLayout = (GridLayout) contentPanel.getLayoutManager();
             gridLayout.setHorizontalSpacing(3);
 
-            SnakeGame game = new SnakeGame(test,screen,terminal);
-            ScoreBoard board=new ScoreBoard(test,screen);
+            SnakeGame game = new SnakeGame(leaderBoard,screen,terminal);
+            ScoreBoard board=new ScoreBoard(leaderBoard,screen);
 
             menu(window,game,board);
 

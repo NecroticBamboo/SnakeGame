@@ -1,15 +1,19 @@
 package com.NecroticBamboo;
 
-public class Score {
+public class User {
     private String name;
     private int score;
 
-    public Score(String nameIn,int scoreIn){
+    public User(String nameIn, int scoreIn){
         name=nameIn;
         score=scoreIn;
     }
 
     public String getName(){return name;}
 
+    public void setName(String newName){name=newName;}
+
     public int getScore(){return score;}
+
+    public void setScore(int newScore){score=newScore;}
 }
