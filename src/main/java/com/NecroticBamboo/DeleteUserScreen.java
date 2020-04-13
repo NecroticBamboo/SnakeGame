@@ -17,7 +17,7 @@ public class DeleteUserScreen {
         leaderBoard = userIn;
     }
 
-    public void deleteUser(){
+    public void deleteUser() {
         try {
             WindowBasedTextGUI textGUI = new MultiWindowTextGUI(screen);
             screen.startScreen();
@@ -28,12 +28,12 @@ public class DeleteUserScreen {
             GridLayout gridLayout = (GridLayout) contentPanel.getLayoutManager();
             gridLayout.setHorizontalSpacing(3);
 
-            if(leaderBoard.isEmpty()){
-                Label statement=new Label("Nothing to display");
+            if (leaderBoard.isEmpty()) {
+                Label statement = new Label("Nothing to display");
                 contentPanel.addComponent(statement);
-            }else displayNamesOfUsers(contentPanel);
+            } else displayNamesOfUsers(contentPanel);
 
-            contentPanel.addComponent(new Button("BACK",window::close));
+            contentPanel.addComponent(new Button("BACK", window::close));
 
             window.setComponent(contentPanel);
             textGUI.addWindowAndWait(window);
@@ -43,17 +43,16 @@ public class DeleteUserScreen {
         }
     }
 
-    private static void displayNamesOfUsers(Panel contentPanel){
-        for(int user=0;user<leaderBoard.size();user++){
+    private static void displayNamesOfUsers(Panel contentPanel) {
+        for (int user = 0; user < leaderBoard.size(); user++) {
             int finalUser = user;
-            contentPanel.addComponent(new Button(""+(user+1),()->deleteSelectedUser(finalUser)));
-            Label name=new Label(""+ leaderBoard.get(user).getName());
+            contentPanel.addComponent(new Button("" + (user + 1), () -> deleteSelectedUser(finalUser)));
+            Label name = new Label("" + leaderBoard.get(user).getName());
             contentPanel.addComponent(name);
         }
     }
 
-    private static void deleteSelectedUser(int index){
+    private static void deleteSelectedUser(int index) {
         leaderBoard.remove(index);
-//        displayNamesOfUsers();
     }
 }

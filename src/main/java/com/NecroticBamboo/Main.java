@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class Main {
 
-    private static List<User> leaderBoard =new ArrayList<>();
+    private final static List<User> leaderBoard = new ArrayList<>();
 
     private static final DefaultTerminalFactory defaultTerminalFactory = new DefaultTerminalFactory();
 
@@ -26,9 +26,9 @@ public class Main {
     private static Screen screen = null;
 
     private static WindowBasedTextGUI textGUI = null;
-    private static Panel contentPanel = new Panel(new GridLayout(2));
+    private final static Panel contentPanel = new Panel(new GridLayout(2));
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         try {
             initTerminal();
             screen.startScreen();
@@ -38,10 +38,10 @@ public class Main {
             GridLayout gridLayout = (GridLayout) contentPanel.getLayoutManager();
             gridLayout.setHorizontalSpacing(3);
 
-            SnakeGame game = new SnakeGame(leaderBoard,screen,terminal);
-            ScoreBoard board=new ScoreBoard(leaderBoard,screen);
+            SnakeGame game = new SnakeGame(leaderBoard, screen, terminal);
+            ScoreBoard board = new ScoreBoard(leaderBoard, screen);
 
-            menu(window,game,board);
+            menu(window, game, board);
 
             window.setComponent(contentPanel);
             textGUI.addWindowAndWait(window);
@@ -71,7 +71,7 @@ public class Main {
         }
     }
 
-    public static void menu(Window window,SnakeGame game,ScoreBoard board){
+    public static void menu(Window window, SnakeGame game, ScoreBoard board) {
 
         contentPanel.addComponent(new Button("1", game::play));
         Label question = new Label("Play game");

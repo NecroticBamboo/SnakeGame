@@ -9,15 +9,10 @@ import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.Terminal;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
-//TODO: decrease delay when score increases (Done)
-//TODO: replace magic characters (Done)
+
 //TODO: make it colourful
-//TODO: blink on loss (Done?)
 //TODO: extract board interface. Remove screen from the game
 //TODO: draw updates only
 //TODO: write unit tests
@@ -32,13 +27,13 @@ public class SnakeGame {
 
     private int score = 0;
     private int delay = 250;
-    private final int blinkDelay=500;
-    private int numberOfBlinks=3;
-
 
     private final char snakeSymbol = 'A';
     private final char point = '0';
 
+
+    private final int blinkDelay = 500;
+    private final int numberOfBlinks = 3;
     private final TextColor blinkColour1 = TextColor.ANSI.WHITE;
     private final TextColor blinkColour2 = TextColor.ANSI.BLACK;
 
@@ -80,7 +75,7 @@ public class SnakeGame {
 
                 switch (keyStroke.getCharacter()) {
                     case 'w':
-                        if (!move(0, -1)) {
+                        if (move(0, -1)) {
                             return;
                         } else {
                             printBoard();
@@ -88,7 +83,7 @@ public class SnakeGame {
                         previousKeyStroke = keyStroke;
                         break;
                     case 's':
-                        if (!move(0, 1)) {
+                        if (move(0, 1)) {
                             return;
                         } else {
                             printBoard();
@@ -96,7 +91,7 @@ public class SnakeGame {
                         previousKeyStroke = keyStroke;
                         break;
                     case 'a':
-                        if (!move(-1, 0)) {
+                        if (move(-1, 0)) {
                             return;
                         } else {
                             printBoard();
@@ -104,7 +99,7 @@ public class SnakeGame {
                         previousKeyStroke = keyStroke;
                         break;
                     case 'd':
-                        if (!move(1, 0)) {
+                        if (move(1, 0)) {
                             return;
                         } else {
                             printBoard();
@@ -114,7 +109,7 @@ public class SnakeGame {
                     default:
                         break;
                 }
-                textGraphics.putString(0, 0, "Current score: " + score + "  Current delay: " + delay+ " ");
+                textGraphics.putString(0, 0, "Current score: " + score + "  Current delay: " + delay + " ");
                 screen.refresh();
 
                 Thread.sleep(delay);
@@ -169,15 +164,13 @@ public class SnakeGame {
     }
 
     private Coordinates selectRandomElementInArray() {
-        int totalElement = board.length * board[0].length;
-        int indexToSelect = (int) (Math.random() * totalElement);
-        int row = indexToSelect % board.length;
-        int column = indexToSelect / board[0].length;
+        int row = new Random().nextInt(board.length);
+        int column = new Random().nextInt(board[0].length);
         return new Coordinates(row, column);
     }
 
-    private void placePoint(Coordinates head, char element) {
-        board[head.getRow()][head.getColumn()] = element;
+    private void placePoint(Coordinates pointCoords, char element) {
+        board[pointCoords.getRow()][pointCoords.getColumn()] = element;
     }
 
     private void clearBoard() {
@@ -192,19 +185,28 @@ public class SnakeGame {
         if (newRow >= board.length || newRow < 0 || newColumn >= board[0].length || newColumn < 0) {
             blink();
             printEndGameMessage();
-            return false;
+            return true;
         } else if (board[newRow][newColumn] == snakeSymbol) {
             blink();
             printEndGameMessage();
-            return false;
+            return true;
         } else if (board[newRow][newColumn] == point) {
             snakeBody.add(snakeHeadPosition);
             snakeHeadPosition = new Coordinates(newRow, newColumn);
             placePoint(snakeHeadPosition, snakeSymbol);
             makeAndPlacePointToCollect();
 
-            delay = delay - 10;
-            score++;
+            if (delay <= 100) {
+                delay = delay - 5;
+                score = score + 2;
+            } else if (delay <= 50) {
+                delay = delay - 2;
+                score = score + 3;
+            } else {
+                delay = delay - 10;
+                score++;
+            }
+
         } else {
             snakeBody.add(snakeHeadPosition);
             snakeHeadPosition = new Coordinates(newRow, newColumn);
@@ -212,7 +214,7 @@ public class SnakeGame {
             placePoint(snakeHeadPosition, snakeSymbol);
             placePoint(tail, ' ');
         }
-        return true;
+        return false;
     }
 
     private void blink() {
@@ -223,8 +225,8 @@ public class SnakeGame {
             screen.clear();
             screen.refresh();
 
-            for(int i=0; i < numberOfBlinks;i++) {
-                if (i%2==0) {
+            for (int i = 0; i < numberOfBlinks; i++) {
+                if (i % 2 == 0) {
                     fillBackground(textGraphics, blinkColour1);
                 } else {
                     fillBackground(textGraphics, blinkColour2);

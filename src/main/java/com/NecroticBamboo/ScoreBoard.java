@@ -29,10 +29,14 @@ public class ScoreBoard {
             GridLayout gridLayout = (GridLayout) contentPanel.getLayoutManager();
             gridLayout.setHorizontalSpacing(3);
 
-            sortAndShowScoreBoard(contentPanel);
+            if (leaderBoard.isEmpty()) {
+                Label statement = new Label("Nothing to show!");
+                statement.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING, true, false, 3, 1));
+                contentPanel.addComponent(statement);
+            } else sortAndShowScoreBoard(contentPanel);
 
-            DeleteUserScreen delete=new DeleteUserScreen(leaderBoard,screen);
-            contentPanel.addComponent(new Button("BACK",window::close));
+            DeleteUserScreen delete = new DeleteUserScreen(leaderBoard, screen);
+            contentPanel.addComponent(new Button("BACK", window::close));
             contentPanel.addComponent(new Button("DELETE", delete::deleteUser));
             contentPanel.addComponent(new Button("RESET", ScoreBoard::resetLeaderBoard));
 
@@ -45,15 +49,15 @@ public class ScoreBoard {
     }
 
     private static void sortAndShowScoreBoard(Panel contentPanel) {
-        Collections.sort(leaderBoard,(User a, User b)->a.getScore()-b.getScore());
+        Collections.sort(leaderBoard, (User a, User b) -> a.getScore() - b.getScore());
         for (User user : leaderBoard) {
-            Label question = new Label("User: "+ user.getName() + " has the following score: " + user.getScore());
-            question.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING,GridLayout.Alignment.BEGINNING,true,false,3,1));
+            Label question = new Label("User: " + user.getName() + " has the following score: " + user.getScore());
+            question.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING, true, false, 3, 1));
             contentPanel.addComponent(question);
         }
     }
 
-    private static void resetLeaderBoard(){
+    private static void resetLeaderBoard() {
         leaderBoard.clear();
     }
 
