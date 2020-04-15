@@ -18,6 +18,7 @@ import java.util.List;
 public class Main {
 
     private final static List<User> leaderBoard = new ArrayList<>();
+    private final static Options options = new Options(false, false);
 
     private static final DefaultTerminalFactory defaultTerminalFactory = new DefaultTerminalFactory();
 
@@ -33,15 +34,20 @@ public class Main {
             initTerminal();
             screen.startScreen();
 
+            showLogo();
+
             final Window window = new BasicWindow("Main Window");
 
             GridLayout gridLayout = (GridLayout) contentPanel.getLayoutManager();
             gridLayout.setHorizontalSpacing(3);
 
-            SnakeGame game = new SnakeGame(leaderBoard, screen, terminal);
+            OptionsMenu settings = new OptionsMenu(screen, options);
+
             ScoreBoard board = new ScoreBoard(leaderBoard, screen);
 
-            menu(window, game, board);
+            SnakeGame game = new SnakeGame(leaderBoard, options, screen, terminal);
+
+            menu(window, game, board, settings);
 
             window.setComponent(contentPanel);
             textGUI.addWindowAndWait(window);
@@ -71,7 +77,47 @@ public class Main {
         }
     }
 
-    public static void menu(Window window, SnakeGame game, ScoreBoard board) {
+    private static void showLogo() {
+        try {
+            Panel logoPanel = new Panel(new GridLayout(1));
+
+            Window logoWindow = new BasicWindow("");
+            Label logo = new Label(
+                    "   ▄████████ ███▄▄▄▄      ▄████████    ▄█   ▄█▄    ▄████████     \n" +
+                            "  ███    ███ ███▀▀▀██▄   ███    ███   ███ ▄███▀   ███    ███          \n" +
+                            "  ███    █▀  ███   ███   ███    ███   ███▐██▀     ███    █▀           \n" +
+                            "  ███        ███   ███   ███    ███  ▄█████▀     ▄███▄▄▄              \n" +
+                            "▀███████████ ███   ███ ▀███████████ ▀▀█████▄    ▀▀███▀▀▀              \n" +
+                            "         ███ ███   ███   ███    ███   ███▐██▄     ███    █▄           \n" +
+                            "   ▄█    ███ ███   ███   ███    ███   ███ ▀███▄   ███    ███          \n" +
+                            " ▄████████▀   ▀█   █▀    ███    █▀    ███   ▀█▀   ██████████          \n" +
+                            "                                      ▀                               \n" +
+                            "                  ▄██████▄     ▄████████   ▄▄▄▄███▄▄▄▄      ▄████████ \n" +
+                            "                 ███    ███   ███    ███ ▄██▀▀▀███▀▀▀██▄   ███    ███ \n" +
+                            "                 ███    █▀    ███    ███ ███   ███   ███   ███    █▀  \n" +
+                            "                ▄███          ███    ███ ███   ███   ███  ▄███▄▄▄     \n" +
+                            "               ▀▀███ ████▄  ▀███████████ ███   ███   ███ ▀▀███▀▀▀     \n" +
+                            "                 ███    ███   ███    ███ ███   ███   ███   ███    █▄  \n" +
+                            "                 ███    ███   ███    ███ ███   ███   ███   ███    ███ \n" +
+                            "                 ████████▀    ███    █▀   ▀█   ███   █▀    ██████████ \n" +
+                            "                                                                      \n" +
+                            "\n");
+            logoPanel.addComponent(logo);
+
+            logoWindow.setComponent(logoPanel);
+            textGUI.addWindow(logoWindow);
+            textGUI.updateScreen();
+
+            Thread.sleep(1500);
+            logoWindow.close();
+
+        } catch (InterruptedException | IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static void menu(Window window, SnakeGame game, ScoreBoard board, OptionsMenu settings) {
 
         contentPanel.addComponent(new Button("1", game::play));
         Label question = new Label("Play game");
@@ -81,8 +127,8 @@ public class Main {
         question = new Label("Show scoreboard");
         contentPanel.addComponent(question);
 
-        contentPanel.addComponent(new Button("3"));
-        question = new Label("Something");
+        contentPanel.addComponent(new Button("3", settings::selectOptions));
+        question = new Label("Options");
         contentPanel.addComponent(question);
 
         contentPanel.addComponent(new Button("4", window::close));

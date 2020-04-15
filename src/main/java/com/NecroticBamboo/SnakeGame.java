@@ -34,20 +34,22 @@ public class SnakeGame {
 
     private final int blinkDelay = 500;
     private final int numberOfBlinks = 3;
-    private final TextColor blinkColour1 = TextColor.ANSI.WHITE;
-    private final TextColor blinkColour2 = TextColor.ANSI.BLACK;
+    private final TextColor colorWhite = TextColor.ANSI.WHITE;
+    private final TextColor colorBlack = TextColor.ANSI.BLACK;
 
+    private static List<User> leaderBoard;
+    private final Options settings;
     private static Screen screen;
     private final Terminal terminal;
 
-    private static List<User> leaderBoard;
     private static int leaderBoardLength = 0;
 
     private static int moveRow;
     private static int moveCol;
 
-    public SnakeGame(List<User> leaderBoardIn, Screen screenIn, Terminal terminalIn) {
+    public SnakeGame(List<User> leaderBoardIn, Options settingsIn, Screen screenIn, Terminal terminalIn) {
         leaderBoard = leaderBoardIn;
+        settings = settingsIn;
         screen = screenIn;
         terminal = terminalIn;
     }
@@ -109,6 +111,8 @@ public class SnakeGame {
                     default:
                         break;
                 }
+                textGraphics.setBackgroundColor(colorWhite);
+                textGraphics.setForegroundColor(colorBlack);
                 textGraphics.putString(0, 0, "Current score: " + score + "  Current delay: " + delay + " ");
                 screen.refresh();
 
@@ -182,30 +186,38 @@ public class SnakeGame {
     private boolean move(int columnChange, int rowChange) {
         int newRow = snakeHeadPosition.getRow() + rowChange;
         int newColumn = snakeHeadPosition.getColumn() + columnChange;
-        if (newRow >= board.length || newRow < 0 || newColumn >= board[0].length || newColumn < 0) {
+
+        if (newRow >= board.length && settings.getBorderOption()) {
+            newRow = 0;
+        }
+        if (newRow < 0 && settings.getBorderOption()) {
+            newRow = board.length-1;
+        }
+        if (newColumn >= board[0].length && settings.getBorderOption()) {
+            newColumn = 0;
+        }
+        if (newColumn < 0 && settings.getBorderOption()) {
+            newColumn = board[0].length-1;
+        }
+
+
+        if (newRow >= board.length || newRow < 0 || newColumn >= board[0].length || newColumn < 0 && !settings.getBorderOption()) {
             blink();
             printEndGameMessage();
             return true;
+
         } else if (board[newRow][newColumn] == snakeSymbol) {
             blink();
             printEndGameMessage();
             return true;
+
         } else if (board[newRow][newColumn] == point) {
             snakeBody.add(snakeHeadPosition);
             snakeHeadPosition = new Coordinates(newRow, newColumn);
             placePoint(snakeHeadPosition, snakeSymbol);
             makeAndPlacePointToCollect();
 
-            if (delay <= 100) {
-                delay = delay - 5;
-                score = score + 2;
-            } else if (delay <= 50) {
-                delay = delay - 2;
-                score = score + 3;
-            } else {
-                delay = delay - 10;
-                score++;
-            }
+            speedUpGameAndIncreaseScore();
 
         } else {
             snakeBody.add(snakeHeadPosition);
@@ -215,6 +227,25 @@ public class SnakeGame {
             placePoint(tail, ' ');
         }
         return false;
+    }
+
+    private void speedUpGameAndIncreaseScore() {
+        if (delay <= 100) {
+            delay = delay - 5;
+            incrementScore(2, settings.getDoublePointsOption());
+        } else if (delay <= 50) {
+            delay = delay - 2;
+            incrementScore(3, settings.getDoublePointsOption());
+        } else {
+            delay = delay - 10;
+            incrementScore(1, settings.getDoublePointsOption());
+        }
+    }
+
+    private void incrementScore(int number, boolean doublePointsOption) {
+        if (!doublePointsOption) {
+            score = score + number;
+        } else score = score + (number * 2);
     }
 
     private void blink() {
@@ -227,9 +258,9 @@ public class SnakeGame {
 
             for (int i = 0; i < numberOfBlinks; i++) {
                 if (i % 2 == 0) {
-                    fillBackground(textGraphics, blinkColour1);
+                    fillBackground(textGraphics, colorWhite);
                 } else {
-                    fillBackground(textGraphics, blinkColour2);
+                    fillBackground(textGraphics, colorBlack);
                 }
 
                 Thread.sleep(blinkDelay);
