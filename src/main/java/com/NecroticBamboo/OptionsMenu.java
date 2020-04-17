@@ -34,20 +34,25 @@ public class OptionsMenu {
             doublePoints.setChecked(options.getDoublePointsOption());
             contentPanel.addComponent(doublePoints);
 
+            CheckBox objects=new CheckBox("Disable objects on the screen");
+            objects.setChecked(options.getObjectsOption());
+            contentPanel.addComponent(objects);
+
             contentPanel.addComponent(new Button("BACK", window::close));
 
             window.setComponent(contentPanel);
             textGUI.addWindowAndWait(window);
 
-            CheckOptions(borders, doublePoints);
+            CheckOptions(borders, doublePoints,objects);
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void CheckOptions(CheckBox borders, CheckBox doublePoints) {
+    private void CheckOptions(CheckBox borders, CheckBox doublePoints,CheckBox objects) {
         options.setBorderOption(borders.isChecked());
         options.setDoublePointsOption(doublePoints.isChecked());
+        options.setObjectsOption(objects.isChecked());
     }
 }

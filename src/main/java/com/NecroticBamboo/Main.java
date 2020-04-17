@@ -18,7 +18,7 @@ import java.util.List;
 public class Main {
 
     private final static List<User> leaderBoard = new ArrayList<>();
-    private final static Options options = new Options(false, false);
+    private final static Options options = new Options(false, false,false);
 
     private static final DefaultTerminalFactory defaultTerminalFactory = new DefaultTerminalFactory();
 

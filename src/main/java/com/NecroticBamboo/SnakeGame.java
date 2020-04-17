@@ -27,13 +27,18 @@ public class SnakeGame {
 
     private int score = 0;
     private int delay = 250;
+    private int level = 1;
 
     private final char snakeSymbol = 'A';
-    private final char point = '0';
+    private final char pointSymbol = '0';
+    private final char objectSymbol = '*';
 
 
     private final int blinkDelay = 500;
     private final int numberOfBlinks = 3;
+    private int objectLimit = 0;
+    private int pointLimit = 0;
+
     private final TextColor colorWhite = TextColor.ANSI.WHITE;
     private final TextColor colorBlack = TextColor.ANSI.BLACK;
 
@@ -113,7 +118,7 @@ public class SnakeGame {
                 }
                 textGraphics.setBackgroundColor(colorWhite);
                 textGraphics.setForegroundColor(colorBlack);
-                textGraphics.putString(0, 0, "Current score: " + score + "  Current delay: " + delay + " ");
+                textGraphics.putString(0, 0, "Current score: " + score + " Current level: " + level + "  Current delay: " + delay + " ");
                 screen.refresh();
 
                 Thread.sleep(delay);
@@ -150,21 +155,20 @@ public class SnakeGame {
     public void setStart() {
         score = 0;
         delay = 250;
+        pointLimit = 1;
 
         clearBoard();
         snakeBody.clear();
         snakeHeadPosition = selectRandomElementInArray();
         placePoint(snakeHeadPosition, snakeSymbol);
-        makeAndPlacePointToCollect();
+        placeObjectsAndPoints(pointSymbol, pointLimit);
         printBoard();
     }
 
-    private void makeAndPlacePointToCollect() {
-        Coordinates pointLocation = selectRandomElementInArray();
-        while (board[pointLocation.getRow()][pointLocation.getColumn()] == snakeSymbol) {
-            pointLocation = selectRandomElementInArray();
+    private void clearBoard() {
+        for (char[] chars : board) {
+            Arrays.fill(chars, ' ');
         }
-        placePoint(pointLocation, point);
     }
 
     private Coordinates selectRandomElementInArray() {
@@ -173,14 +177,29 @@ public class SnakeGame {
         return new Coordinates(row, column);
     }
 
-    private void placePoint(Coordinates pointCoords, char element) {
-        board[pointCoords.getRow()][pointCoords.getColumn()] = element;
+    private void placeObjectsAndPoints(char symbol, int limit) {
+        clearObjectsOrPointFromBoard(symbol);
+        for (int i = 0; i < limit; i++) {
+            Coordinates objectPosition = selectRandomElementInArray();
+            while (board[objectPosition.getRow()][objectPosition.getColumn()] == snakeSymbol || board[objectPosition.getRow()][objectPosition.getColumn()] == objectSymbol || board[objectPosition.getRow()][objectPosition.getColumn()] == pointSymbol) {
+                objectPosition = selectRandomElementInArray();
+            }
+            placePoint(objectPosition, symbol);
+        }
     }
 
-    private void clearBoard() {
-        for (char[] chars : board) {
-            Arrays.fill(chars, ' ');
+    private void clearObjectsOrPointFromBoard(char symbol) {
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                if (board[i][j] == symbol) {
+                    board[i][j] = ' ';
+                }
+            }
         }
+    }
+
+    private void placePoint(Coordinates pointCoords, char element) {
+        board[pointCoords.getRow()][pointCoords.getColumn()] = element;
     }
 
     private boolean move(int columnChange, int rowChange) {
@@ -191,33 +210,32 @@ public class SnakeGame {
             newRow = 0;
         }
         if (newRow < 0 && settings.getBorderOption()) {
-            newRow = board.length-1;
+            newRow = board.length - 1;
         }
         if (newColumn >= board[0].length && settings.getBorderOption()) {
             newColumn = 0;
         }
         if (newColumn < 0 && settings.getBorderOption()) {
-            newColumn = board[0].length-1;
+            newColumn = board[0].length - 1;
         }
 
 
-        if (newRow >= board.length || newRow < 0 || newColumn >= board[0].length || newColumn < 0 && !settings.getBorderOption()) {
+        if (newRow >= board.length || newRow < 0 || newColumn >= board[0].length || newColumn < 0 && !settings.getBorderOption() || board[newRow][newColumn] == snakeSymbol || board[newRow][newColumn] == objectSymbol) {
             blink();
             printEndGameMessage();
             return true;
 
-        } else if (board[newRow][newColumn] == snakeSymbol) {
-            blink();
-            printEndGameMessage();
-            return true;
-
-        } else if (board[newRow][newColumn] == point) {
+        } else if (board[newRow][newColumn] == pointSymbol) {
             snakeBody.add(snakeHeadPosition);
             snakeHeadPosition = new Coordinates(newRow, newColumn);
             placePoint(snakeHeadPosition, snakeSymbol);
-            makeAndPlacePointToCollect();
 
-            speedUpGameAndIncreaseScore();
+            placeObjectsAndPoints(pointSymbol, pointLimit);
+            if (!settings.getObjectsOption()) {
+                placeObjectsAndPoints(objectSymbol, objectLimit);
+            }
+
+            proceedToNextLevel();
 
         } else {
             snakeBody.add(snakeHeadPosition);
@@ -229,23 +247,31 @@ public class SnakeGame {
         return false;
     }
 
-    private void speedUpGameAndIncreaseScore() {
-        if (delay <= 100) {
-            delay = delay - 5;
-            incrementScore(2, settings.getDoublePointsOption());
-        } else if (delay <= 50) {
-            delay = delay - 2;
-            incrementScore(3, settings.getDoublePointsOption());
-        } else {
-            delay = delay - 10;
-            incrementScore(1, settings.getDoublePointsOption());
+    private void proceedToNextLevel() {
+        int percentage = (int) (delay * (10.0f / 100.0f));
+        delay = delay - percentage;
+        if (delay <= 50) {
+            delay = 250;
+            level++;
+            objectLimit = objectLimit + 2;
+            pointLimit++;
+
+            if (level >= 5) {
+                pointLimit = 5;
+            }
+
+            placeObjectsAndPoints(pointSymbol, pointLimit);
+            if (!settings.getObjectsOption()) {
+                placeObjectsAndPoints(objectSymbol, objectLimit);
+            }
         }
+        incrementScore(settings.getDoublePointsOption());
     }
 
-    private void incrementScore(int number, boolean doublePointsOption) {
+    private void incrementScore(boolean doublePointsOption) {
         if (!doublePointsOption) {
-            score = score + number;
-        } else score = score + (number * 2);
+            score++;
+        } else score = score + 2;
     }
 
     private void blink() {
