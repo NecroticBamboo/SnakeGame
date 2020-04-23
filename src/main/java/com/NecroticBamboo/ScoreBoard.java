@@ -13,9 +13,9 @@ public class ScoreBoard {
 
     private static List<User> leaderBoard;
 
-    public ScoreBoard(List<User> userIn, Screen screenIn) {
+    public ScoreBoard(ILeaderBoard leaderBoardIn, Screen screenIn) {
         screen = screenIn;
-        leaderBoard = userIn;
+        leaderBoard = leaderBoardIn.getLeaderBoard();
     }
 
     public void showScore() {
@@ -60,5 +60,7 @@ public class ScoreBoard {
     private static void resetLeaderBoard() {
         leaderBoard.clear();
     }
+
+
 
 }

@@ -17,7 +17,6 @@ import java.util.List;
  */
 public class Main {
 
-    private final static List<User> leaderBoard = new ArrayList<>();
     private final static Options options = new Options(false, false,false);
 
     private static final DefaultTerminalFactory defaultTerminalFactory = new DefaultTerminalFactory();
@@ -43,11 +42,16 @@ public class Main {
 
             OptionsMenu settings = new OptionsMenu(screen, options);
 
-            ScoreBoard board = new ScoreBoard(leaderBoard, screen);
+            ILeaderBoard leaderBoard = new LeaderBoard();
+            ScoreBoard scoreBoard = new ScoreBoard(leaderBoard, screen);
 
-            SnakeGame game = new SnakeGame(leaderBoard, options, screen, terminal);
+            SnakeScreen snakeScreen=new SnakeScreen(terminal,screen);
+            SnakeMovement movement=new SnakeMovement(terminal);
+            Board board=new Board(snakeScreen);
 
-            menu(window, game, board, settings);
+            SnakeGame game = new SnakeGame(options, snakeScreen, movement,board);
+
+            menu(window, snakeScreen, game, scoreBoard, settings,leaderBoard);
 
             window.setComponent(contentPanel);
             textGUI.addWindowAndWait(window);
@@ -117,9 +121,9 @@ public class Main {
 
     }
 
-    public static void menu(Window window, SnakeGame game, ScoreBoard board, OptionsMenu settings) {
+    public static void menu(Window window, ISnakeScreen screen, SnakeGame game, ScoreBoard board, OptionsMenu settings, ILeaderBoard leaderBoard) {
 
-        contentPanel.addComponent(new Button("1", game::play));
+        contentPanel.addComponent(new Button("1", ()->play(game,screen,leaderBoard)));
         Label question = new Label("Play game");
         contentPanel.addComponent(question);
 
@@ -137,5 +141,10 @@ public class Main {
 
     }
 
+    private static void play(SnakeGame game,ISnakeScreen screen, ILeaderBoard leaderBoard){
+        int score=game.play();
+        String name=screen.query("Enter your name (4 character max): ");
+        leaderBoard.addUser(name,score);
+    }
 }
 
